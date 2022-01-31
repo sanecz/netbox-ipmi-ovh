@@ -1,4 +1,12 @@
-todo later?:
+TODO LIST:
+
+- [ ] gestion d'erreur si l'access ipmi demandé n'est pas dispo coté ovh
+- [ ] default value si ssh_key / ip pas set
+- [ ] gestion d'erreur si OVH renvoie erreur
+- [ ] parsing ip dans ipmi-config
+- [ ] hint python
+- [ ] better documentation
+- [ ] support derniere version netbox
 
 
 config:
