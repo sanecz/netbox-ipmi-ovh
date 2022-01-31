@@ -7,6 +7,7 @@ TODO LIST:
 - [ ] hint python
 - [ ] better documentation
 - [ ] support derniere version netbox
+- [ ] test en python 3.7 (dev en 3.9)
 
 
 config:
