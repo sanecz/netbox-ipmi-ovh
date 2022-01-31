@@ -3,8 +3,7 @@ import signal
 import time
 import sys
 
-
-prefered_access_type = ["kvmipHtml5URL", "kvmipJnlp", "serialOverLanURL", "serialOverLanSshKey"]
+ALLOWED_ACCESS_TYPE = ["kvmipHtml5URL", "kvmipJnlp", "serialOverLanURL", "serialOverLanSshKey"]
 
 def wait_for_ovh_task(client, service_name, task_id):
     # should take less than 30 secs
@@ -16,25 +15,35 @@ def wait_for_ovh_task(client, service_name, task_id):
     else:
         raise Exception  # fixme
 
-def request_ipmi_access(client, service_name):
+def request_ipmi_access(client, service_name, access_type, ssh_key=None, ip_to_allow=None):
     result = client.get(
         f'/dedicated/server/{service_name}/features/ipmi'
     )
 
-    ipmi_access_type = get_prefered_ipmi_access(result)
-    assert ipmi_access_type
+    assert access_type in ALLOWED_ACCESS_TYPE
+
+    parameters = {
+        "type": access_type,
+        "ttl": 15
+    }
+
+    if ssh_key:
+        parameters["sshKey"] = ssh_key
+    if ip_to_allow:
+        parameters["ipToAllow"] = ip_to_allow
+
+    #fixme: add parameters later
 
     result = client.post(
         f'/dedicated/server/{service_name}/features/ipmi/access',
-        ttl="15",
-        type=ipmi_access_type
+        **parameters
     )
     
     wait_for_ovh_task(client, service_name, result['taskId'])
 
     result = client.get(
         f'/dedicated/server/{service_name}/features/ipmi/access',
-        type=ipmi_access_type
+        type=access_type
     )
 
     return result["value"]
