@@ -16,7 +16,7 @@ class IpmiButton(PluginTemplateExtension):
         device = self.context["object"]
         has_ipmi = False
 
-        if hasattr(device, OVH_ENDPOINT_FIELD) or OVH_ENDPOINT_FIELD in device.custom_field_data:
+        if getattr(device, OVH_ENDPOINT_FIELD, None) or device.custom_field_data.get(OVH_ENDPOINT_FIELD, None):
             has_ipmi = True
 
         return self.render(

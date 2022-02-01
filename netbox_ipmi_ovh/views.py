@@ -83,12 +83,12 @@ class IpmiView(BaseIpmiView):
         elif OVH_ENDPOINT_FIELD in device.custom_field_data:
             ovh_endpoint = device.custom_field_data[OVH_ENDPOINT_FIELD]
         else:
-            return render(request, {
+            return render(request, self.template_error, {
                 "error_message": "No OVH endpoint has been detected, cannot process request"
             })
 
         if ovh_endpoint not in OVH_ENDPOINTS:
-            return render(request, {
+            return render(request, self.template_error, {
                 "error_message": f"Endpoint {ovh_endpoint} does not exist, please check endpoint name or your PLUGIN_SETTINGS"
             })
 
@@ -101,13 +101,13 @@ class IpmiView(BaseIpmiView):
                 ssh_key=usercfg.ssh_key_name
             )
         except APIError as e:
-            return render(request, {
-                "error_message": f"An error occured while trying to contact OVH: '{e}'"
+            return render(request, self.template_error, {
+                "error_message": f"An error occured while trying to contact OVH: {e}"
             })
 
         except NetboxIpmiOvh as e:
-            return render(request, {
-                "error_message": f"An error occured while trying to request IPMI access: '{e}'"
+            return render(request, self.template_error, {
+                "error_message": f"An error occured while trying to request IPMI access: {e}"
             })
 
         # we should never trigger this as it's handled in request_ipmi_access
