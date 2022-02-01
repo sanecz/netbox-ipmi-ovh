@@ -1,6 +1,5 @@
-import ovh
 import time
-from netbox_ipmi_ovh.exceptions import NetboxIpmiOvhTimeout, NetboxIpmiOvhInvalidParameter
+from netbox_ipmi_ovh.exceptions import NetboxIpmiOvhTimeout, NetboxIpmiOvhError
 
 def wait_for_ovh_task(client, service_name, task_id):
     # should take less than 30 secs
@@ -44,7 +43,7 @@ def request_ipmi_access(client, service_name, access_type, ssh_key=None, ip_to_a
         f'/dedicated/server/{service_name}/features/ipmi/access',
         **parameters
     )
-    
+
     wait_for_ovh_task(client, service_name, result['taskId'])
 
     result = client.get(

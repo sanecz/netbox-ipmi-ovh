@@ -1,27 +1,28 @@
 from dcim.models import Device
 from django.shortcuts import redirect, render
 from django.views.generic import View
-from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
+from ovh import Client, APIError
 
 from netbox_ipmi_ovh.forms import UserIpmiCfgForm
 from netbox_ipmi_ovh.models import Ipmi as UserIpmiCfg
 from netbox_ipmi_ovh.ipmi import request_ipmi_access
 from netbox_ipmi_ovh.exceptions import NetboxIpmiOvh
 
-from ovh import Client, APIError
 
-PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("netbox_ipmi_ovh", dict())
 
+
+PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("netbox_ipmi_ovh", {})
 OVH_ENDPOINTS = PLUGIN_SETTINGS["endpoints"]
 OVH_ENDPOINT_FIELD = PLUGIN_SETTINGS["ovh_endpoint_field"]
 OVH_SERVER_NAME_FIELD = PLUGIN_SETTINGS["ovh_server_name_field"]
 
 MAPPING_ACCESS_TYPE = {
     "kvmipHtml5URL": lambda access: redirect(access),
-    "kvmipJnlp": lambda access: HttpResponse(access, content_type='application/x-java-jnlp-file')
+    "kvmipJnlp": lambda access: HttpResponse(access, content_type='application/x-java-jnlp-file'),
     "serialOverLanURL": lambda access: redirect(access),
     "serialOverLanSshKey": lambda access: HttpResponse(f"Please connect to: {access}")
 }
@@ -83,7 +84,7 @@ class IpmiView(BaseIpmiView):
             ovh_endpoint = device.custom_field_data[OVH_ENDPOINT_FIELD]
         else:
             return render(request, {
-                "error_message": f"No OVH endpoint has been detected, cannot process request"
+                "error_message": "No OVH endpoint has been detected, cannot process request"
             })
 
         if ovh_endpoint not in OVH_ENDPOINTS:
@@ -92,7 +93,7 @@ class IpmiView(BaseIpmiView):
             })
 
         client = Client(**OVH_ENDPOINTS[ovh_endpoint])
-            
+
         try:
             access = request_ipmi_access(
                 client, ovh_server_name,
@@ -108,11 +109,8 @@ class IpmiView(BaseIpmiView):
             return render(request, {
                 "error_message": f"An error occured while trying to request IPMI access: '{e}'"
             })
-    
+
         # we should never trigger this as it's handled in request_ipmi_access
         assert access_type in MAPPING_ACCESS_TYPE
-        
-        return MAPPING_ACCESS_TYPE[access_type]
 
-            
-
+        return MAPPING_ACCESS_TYPE[access_type](access)

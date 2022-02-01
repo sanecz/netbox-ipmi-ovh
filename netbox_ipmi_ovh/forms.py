@@ -1,6 +1,7 @@
 from django import forms
-from netbox_ipmi_ovh.models import Ipmi
 from utilities.forms import BootstrapMixin
+from netbox_ipmi_ovh.models import Ipmi
+
 
 class UserIpmiCfgForm(BootstrapMixin, forms.ModelForm):
     ssh_key_name = forms.CharField(
@@ -11,7 +12,12 @@ class UserIpmiCfgForm(BootstrapMixin, forms.ModelForm):
     )
     ip_to_allow = forms.CharField(
         label="IP to allow",
-        help_text="Leave this value to empty if you want to ip from your http request to be allowed for the IPMI connection. If you're using a proxy or VPN, please set the correct IP to be sent to allowed ip for the ipmi login.",
+        help_text=(
+            "Leave this value to empty if you want to ip from your"
+            "http request to be allowed for the IPMI connection. "
+            "If you're using a proxy or VPN, please set the correct IP"
+            "to be sent to allowed ip for the ipmi login."
+        ),
         max_length=100,
         required=False
     )
@@ -19,4 +25,3 @@ class UserIpmiCfgForm(BootstrapMixin, forms.ModelForm):
     class Meta:
         model = Ipmi
         fields = ["ssh_key_name", "ip_to_allow"]
-
