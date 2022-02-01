@@ -13,8 +13,6 @@ from netbox_ipmi_ovh.ipmi import request_ipmi_access
 from netbox_ipmi_ovh.exceptions import NetboxIpmiOvh
 
 
-
-
 PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("netbox_ipmi_ovh", {})
 OVH_ENDPOINTS = PLUGIN_SETTINGS["endpoints"]
 OVH_ENDPOINT_FIELD = PLUGIN_SETTINGS["ovh_endpoint_field"]
@@ -94,15 +92,25 @@ class IpmiView(BaseIpmiView):
 
         client = Client(**OVH_ENDPOINTS[ovh_endpoint])
 
+        # trying to retrieive user IP to send to ovh
+        # if no ip is send in args to ovh api, they will use the ip used for
+        # the http call to their api, and it will be the server ip
+
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+
         try:
             access = request_ipmi_access(
                 client, ovh_server_name,
-                access_type, ip_to_allow=usercfg.ip_to_allow,
+                access_type, ip_to_allow=usercfg.ip_to_allow or ip,
                 ssh_key=usercfg.ssh_key_name
             )
         except APIError as e:
             return render(request, self.template_error, {
-                "error_message": f"An error occured while trying to contact OVH: {e}"
+                "error_message": f"An error occured while contacting OVH: {e}"
             })
 
         except NetboxIpmiOvh as e:

@@ -36,13 +36,18 @@ def request_ipmi_access(client, service_name, access_type, ssh_key=None, ip_to_a
 
     parameters = {
         "type": access_type,
-        "ttl": 15
+        "ttl": 15,
+        "ipToAllow": ip_to_allow
     }
+
+    if 'ssh' in access_type.lower() and not ssh_key:
+        raise NetboxIpmiOvhError(
+            f"SSH Key name required for {access_type}, please fill your "
+            "ssh key name in your configuration" 
+        )
 
     if ssh_key:
         parameters["sshKey"] = ssh_key
-    if ip_to_allow:
-        parameters["ipToAllow"] = ip_to_allow
 
     result = client.post(
         f'/dedicated/server/{service_name}/features/ipmi/access',
