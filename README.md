@@ -92,3 +92,8 @@ You can create custom fields to store required informations for the plugin to wo
 - [ ] support derniere version netbox
 - [ ] test en python 3.7 (dev en 3.9)
 - [ ] pip package
+- [ ] use pathlib instead of os.path
+- [ ] docstrings
+- [ ] ttl -> either document it or make it avail by user with choice dropdown
+- [ ] test if ovh_server_name retrieived via getattr and return proper error if not
+- [ ] fix status code for all redener template_error 
