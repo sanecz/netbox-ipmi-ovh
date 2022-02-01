@@ -9,8 +9,9 @@ from django.contrib import messages
 from netbox_ipmi_ovh.forms import UserIpmiCfgForm
 from netbox_ipmi_ovh.models import Ipmi as UserIpmiCfg
 from netbox_ipmi_ovh.ipmi import request_ipmi_access
+from netbox_ipmi_ovh.exceptions import NetboxIpmiOvh
 
-from ovh import Client
+from ovh import Client, APIError
 
 PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("netbox_ipmi_ovh", dict())
 
@@ -19,10 +20,10 @@ OVH_ENDPOINT_FIELD = PLUGIN_SETTINGS["ovh_endpoint_field"]
 OVH_SERVER_NAME_FIELD = PLUGIN_SETTINGS["ovh_server_name_field"]
 
 MAPPING_ACCESS_TYPE = {
-    "kvmipHtml5URL": "url",
-    "kvmipJnlp": "jnlp",
-    "serialOverLanURL": "url",
-    "serialOverLanSshKey": "ssh"
+    "kvmipHtml5URL": lambda access: redirect(access),
+    "kvmipJnlp": lambda access: HttpResponse(access, content_type='application/x-java-jnlp-file')
+    "serialOverLanURL": lambda access: redirect(access),
+    "serialOverLanSshKey": lambda access: HttpResponse(f"Please connect to: {access}")
 }
 
 class BaseIpmiView(PermissionRequiredMixin, View):
@@ -67,12 +68,13 @@ class UserIpmiCfgView(BaseIpmiView):
 
 
 class IpmiView(BaseIpmiView):
+    template_error = "netbox_ipmi_ovh/ipmi_error.html"
+
     def get(self, request):
         device_id = request.GET.get("device")
         access_type = request.GET.get("type")
         usercfg = self._get_user_config(request.user)
         device = Device.objects.get(id=device_id)
-
         ovh_server_name = getattr(device, OVH_SERVER_NAME_FIELD)
 
         if hasattr(device, OVH_ENDPOINT_FIELD):
@@ -80,23 +82,37 @@ class IpmiView(BaseIpmiView):
         elif OVH_ENDPOINT_FIELD in device.custom_field_data:
             ovh_endpoint = device.custom_field_data[OVH_ENDPOINT_FIELD]
         else:
-            raise Exception # something?
+            return render(request, {
+                "error_message": f"No OVH endpoint has been detected, cannot process request"
+            })
+
+        if ovh_endpoint not in OVH_ENDPOINTS:
+            return render(request, {
+                "error_message": f"Endpoint {ovh_endpoint} does not exist, please check endpoint name or your PLUGIN_SETTINGS"
+            })
 
         client = Client(**OVH_ENDPOINTS[ovh_endpoint])
-        access = request_ipmi_access(
-            client,
-            ovh_server_name,
-            access_type,
-            ip_to_allow=usercfg.ip_to_allow,
-            ssh_key=usercfg.ssh_key_name
-        )
+            
+        try:
+            access = request_ipmi_access(
+                client, ovh_server_name,
+                access_type, ip_to_allow=usercfg.ip_to_allow,
+                ssh_key=usercfg.ssh_key_name
+            )
+        except APIError as e:
+            return render(request, {
+                "error_message": f"An error occured while trying to contact OVH: '{e}'"
+            })
 
-        if MAPPING_ACCESS_TYPE[access_type] == "url":
-            return redirect(access)
-        elif MAPPING_ACCESS_TYPE[access_type] == "jnlp":
-            return HttpResponse(access, content_type='application/x-java-jnlp-file')
-        elif MAPPING_ACCESS_TYPE[access_type] == "ssh":
-            return HttpResponse(f"Please connect to: {access}")
+        except NetboxIpmiOvh as e:
+            return render(request, {
+                "error_message": f"An error occured while trying to request IPMI access: '{e}'"
+            })
+    
+        # we should never trigger this as it's handled in request_ipmi_access
+        assert access_type in MAPPING_ACCESS_TYPE
+        
+        return MAPPING_ACCESS_TYPE[access_type]
 
             
 

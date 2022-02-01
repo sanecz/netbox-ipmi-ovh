@@ -1,26 +1,34 @@
 import ovh
-import signal
 import time
-import sys
-
-ALLOWED_ACCESS_TYPE = ["kvmipHtml5URL", "kvmipJnlp", "serialOverLanURL", "serialOverLanSshKey"]
+from netbox_ipmi_ovh.exceptions import NetboxIpmiOvhTimeout, NetboxIpmiOvhInvalidParameter
 
 def wait_for_ovh_task(client, service_name, task_id):
     # should take less than 30 secs
+    # todo: maybe do an async task later?
     for _ in range(30):
         result = client.get(f"/dedicated/server/{service_name}/task/{task_id}")
         if result["status"] == "done":
             return
         time.sleep(1)
     else:
-        raise Exception  # fixme
+        raise NetboxIpmiOvhTimeout("Task is taking too long")
+
 
 def request_ipmi_access(client, service_name, access_type, ssh_key=None, ip_to_allow=None):
+    # I could also do the check of the features in the template_content
+    # but i do not want to slow down the loading of the page, as we don't
+    # know if the OVH api is up or down or very slow
     result = client.get(
         f'/dedicated/server/{service_name}/features/ipmi'
     )
 
-    assert access_type in ALLOWED_ACCESS_TYPE
+    supported_features = [k for k, v in result["supportedFeatures"].items() if v]
+
+    if not result["activated"]:
+        raise NetboxIpmiOvhError("IPMI is not active on this server")
+
+    if not access_type in supported_features:
+        raise NetboxIpmiOvhError(f"Access type {access_type} is not supported by this server")
 
     parameters = {
         "type": access_type,
@@ -31,8 +39,6 @@ def request_ipmi_access(client, service_name, access_type, ssh_key=None, ip_to_a
         parameters["sshKey"] = ssh_key
     if ip_to_allow:
         parameters["ipToAllow"] = ip_to_allow
-
-    #fixme: add parameters later
 
     result = client.post(
         f'/dedicated/server/{service_name}/features/ipmi/access',
@@ -47,19 +53,3 @@ def request_ipmi_access(client, service_name, access_type, ssh_key=None, ip_to_a
     )
 
     return result["value"]
-
-def get_prefered_ipmi_access(features_ipmi):
-    """
-    Return the prefered ipmi access type based on the order of
-    prefered_access_type
-    """
-    assert features_ipmi["activated"]
-
-    for access_type in prefered_access_type:
-        if features_ipmi["supportedFeatures"].get(access_type, False):
-            return access_type
-
-
-if __name__ == "__main__":
-    client = ovh.Client(endpoint="ovh-us")
-    print(request_ipmi_access(client, sys.argv[1]))

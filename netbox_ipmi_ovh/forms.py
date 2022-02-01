@@ -16,9 +16,6 @@ class UserIpmiCfgForm(BootstrapMixin, forms.ModelForm):
         required=False
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     class Meta:
         model = Ipmi
         fields = ["ssh_key_name", "ip_to_allow"]

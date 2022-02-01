@@ -1,4 +1,4 @@
-{% if perms.netbox_ipmi_ovh.view_ipmi %}
+{% if perms.netbox_ipmi_ovh.view_ipmi and has_ipmi %}
 <div class="btn-group">
   <button id="ipmi-ovh" class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     <span class="mdi mdi-monitor" aria-hidden="true"></span> IPMI OVH <span class="caret"></span>

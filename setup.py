@@ -15,7 +15,9 @@ setup(
     long_description_content_type='text/markdown',
     author='Lisa Bekdache',
     author_email='lisa.bekdache@gmail.com',
-    install_requires=[],
+    install_requires=[
+        'ovh'
+    ],
     packages=find_packages(),
     license='MIT',
     include_package_data=True,
@@ -23,7 +25,6 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
