@@ -18,10 +18,13 @@ from netbox_ipmi_ovh.exceptions import NetboxIpmiOvh
 NETBOX_CURRENT_VERSION = version.parse(settings.VERSION)
 
 PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("netbox_ipmi_ovh", {})
+
+# Required configuration
 OVH_ENDPOINTS = PLUGIN_SETTINGS["endpoints"]
 OVH_ENDPOINT_FIELD = PLUGIN_SETTINGS["ovh_endpoint_field"]
 OVH_SERVER_NAME_FIELD = PLUGIN_SETTINGS["ovh_server_name_field"]
 
+# Allowed access type for an IPMI access
 MAPPING_ACCESS_TYPE = {
     "kvmipHtml5URL": lambda access: redirect(access),
     "kvmipJnlp": lambda access: HttpResponse(access, content_type='application/x-java-jnlp-file'),
@@ -34,6 +37,9 @@ class BaseIpmiView(PermissionRequiredMixin, View):
 
     @staticmethod
     def _get_user_config(user):
+        """
+        Retrieve user-specific settings
+        """
         try:
             usercfg = UserIpmiCfg.objects.get(user=user)
         except UserIpmiCfg.DoesNotExist:
@@ -48,6 +54,11 @@ class UserIpmiCfgView(BaseIpmiView):
         template_name = 'netbox_ipmi_ovh/ipmi_config.html'
 
     def post(self, request):
+        """
+        Update the user configuration:
+        - ssh_key_name: SSH key name to allow access on KVM/IP interface with (name from /me/sshKey)
+        - allowed_ip: IP to allow connection from for this IPMI session
+        """
         usercfg = self._get_user_config(request.user)
 
         form = UserIpmiCfgForm(data=request.POST, instance=usercfg)
@@ -80,19 +91,28 @@ class IpmiView(BaseIpmiView):
         template_error = "netbox_ipmi_ovh/ipmi_error.html"
 
     def get(self, request):
+        """
+        Query the OVH API to retrieive an IPMI access for a device
+        Works only on bare-metal dedicated cloud servers
+        """
         device_id = request.GET.get("device")
         access_type = request.GET.get("type")
         usercfg = self._get_user_config(request.user)
         device = Device.objects.get(id=device_id)
         ovh_server_name = getattr(device, OVH_SERVER_NAME_FIELD)
 
+        if not ovh_server_name:
+            return render(request, self.template_error, {
+                "error_message": f"Server name not found, please fill the field {OVH_SERVER_NAME_FIELD}"
+            })
+        
         if hasattr(device, OVH_ENDPOINT_FIELD):
             ovh_endpoint = getattr(device, OVH_ENDPOINT_FIELD)
         elif OVH_ENDPOINT_FIELD in device.custom_field_data:
             ovh_endpoint = device.custom_field_data[OVH_ENDPOINT_FIELD]
         else:
             return render(request, self.template_error, {
-                "error_message": "No OVH endpoint has been detected, cannot process request"
+                "error_message": f"No OVH endpoint has been detected, cannot process request, please fill the field {OVH_ENDPOINT_FIELD}"
             })
 
         if ovh_endpoint not in OVH_ENDPOINTS:
@@ -102,7 +122,7 @@ class IpmiView(BaseIpmiView):
 
         client = Client(**OVH_ENDPOINTS[ovh_endpoint])
 
-        # trying to retrieive user IP to send to ovh
+        # trying to retreive user IP to send to ovh
         # if no ip is send in args to ovh api, they will use the ip used for
         # the http call to their api, and it will be the server ip
 

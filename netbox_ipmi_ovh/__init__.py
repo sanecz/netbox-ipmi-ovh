@@ -3,7 +3,7 @@ from extras.plugins import PluginConfig
 class NetboxIpmiOvhConfig(PluginConfig):
     name = 'netbox_ipmi_ovh'
     verbose_name = 'Netbox ipmi ovh'
-    description = ''
+    description = 'A plugin used to add a button in the dcim.device to allow easier access to the IPMI for OVH managed bare metal servers.'
     version = '0.0.1'
     author = 'Lisa Bekdache'
     author_email = 'lisa.bekdache@gmail.com'
