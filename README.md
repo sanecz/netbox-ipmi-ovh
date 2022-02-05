@@ -80,15 +80,3 @@ You can create custom fields to store required informations for the plugin to wo
 
 ![](docs/example_fields.png)
 
-
-# TODO LIST
-
-- [x] gestion d'erreur si l'access ipmi demandé n'est pas dispo coté ovh
-- [x] default value si ssh_key / ip pas set
-- [x] gestion d'erreur si OVH renvoie erreur
-- [x] better documentation
-- [x] support derniere version netbox
-- [ ] test en python 3.7 (dev en 3.9)
-- [ ] pip package
-- [x] docstrings
-- [x] test if ovh_server_name retrieived via getattr and return proper error if not
