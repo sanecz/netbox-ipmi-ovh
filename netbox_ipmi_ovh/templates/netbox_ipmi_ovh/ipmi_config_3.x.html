@@ -1,0 +1,30 @@
+{% extends 'base/layout.html' %}
+{% load form_helpers %}
+
+{% block title %}IPMI OVH{% endblock %}
+
+{% block tabs %}
+<ul class="nav nav-tabs px-3">
+  <li role="presentation" class="nav-item">
+    <a class="nav-link active" href="{% url 'plugins:netbox_ipmi_ovh:ipmi_config' %}">IPMI User Settings</a>
+  </li>
+</ul>
+{% endblock %}
+
+{% block content-wrapper %}
+<div class="tab-content">
+  <form action="." method="post" class="form form-horizontal col-md-10 col-md-offset-1">
+    {% csrf_token %}
+    <div class="field-group">
+      <h5 class="text-center">IPMI User Settings</h5><br/>
+	{% render_field form.ssh_key_name %}
+      {% render_field form.ip_to_allow %}
+      <div class="text-end">
+	<a href="{% url 'plugins:netbox_ipmi_ovh:ipmi_config' %}" class="btn btn-outline-danger">Cancel</a>
+	<button type="submit" name="_update" class="btn btn-primary">Update</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

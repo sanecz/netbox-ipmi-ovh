@@ -5,13 +5,17 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
+from packaging import version
 from ovh import Client, APIError
+
 
 from netbox_ipmi_ovh.forms import UserIpmiCfgForm
 from netbox_ipmi_ovh.models import Ipmi as UserIpmiCfg
 from netbox_ipmi_ovh.ipmi import request_ipmi_access
 from netbox_ipmi_ovh.exceptions import NetboxIpmiOvh
 
+
+NETBOX_CURRENT_VERSION = version.parse(settings.VERSION)
 
 PLUGIN_SETTINGS = settings.PLUGINS_CONFIG.get("netbox_ipmi_ovh", {})
 OVH_ENDPOINTS = PLUGIN_SETTINGS["endpoints"]
@@ -38,7 +42,10 @@ class BaseIpmiView(PermissionRequiredMixin, View):
 
 
 class UserIpmiCfgView(BaseIpmiView):
-    template_name = 'netbox_ipmi_ovh/ipmi_config.html'
+    if NETBOX_CURRENT_VERSION >= version.parse("3.0"):
+        template_name = 'netbox_ipmi_ovh/ipmi_config_3.x.html'
+    else:
+        template_name = 'netbox_ipmi_ovh/ipmi_config.html'
 
     def post(self, request):
         usercfg = self._get_user_config(request.user)
@@ -67,7 +74,10 @@ class UserIpmiCfgView(BaseIpmiView):
 
 
 class IpmiView(BaseIpmiView):
-    template_error = "netbox_ipmi_ovh/ipmi_error.html"
+    if NETBOX_CURRENT_VERSION >= version.parse("3.0"):
+        template_error = "netbox_ipmi_ovh/ipmi_error_3.x.html"
+    else:
+        template_error = "netbox_ipmi_ovh/ipmi_error.html"
 
     def get(self, request):
         device_id = request.GET.get("device")

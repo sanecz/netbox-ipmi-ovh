@@ -1,0 +1,14 @@
+{% if perms.netbox_ipmi_ovh.view_ipmi and has_ipmi %}
+<div class="dropdown">
+  <button id="access-ovh-ipmi" type="button" class="btn btn-sm btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="mdi mdi-monitor" aria-hidden="true"></i> IPMI OVH 
+  </button>
+  <ul class="dropdown-menu" aria-labeled-by="access-ovh-ipmi">
+    <li><a class="dropdown-item" target="_blank" href="{% url 'plugins:netbox_ipmi_ovh:ipmi' %}?device={{ object.id }}&type=kvmipJnlp">KVM ip JNLP</a></li>
+    <li><a class="dropdown-item" target="_blank" href="{% url 'plugins:netbox_ipmi_ovh:ipmi' %}?device={{ object.id }}&type=kvmipHtml5URL">KVM ip HTML5</a></li>
+    <li><a class="dropdown-item" target="_blank" href="{% url 'plugins:netbox_ipmi_ovh:ipmi' %}?device={{ object.id }}&type=serialOverLanURL">SoL HTML5</a></li>
+    <li><a class="dropdown-item" target="_blank" href="{% url 'plugins:netbox_ipmi_ovh:ipmi' %}?device={{ object.id }}&type=serialOverLanSshKey">SoL SSH</a></li>
+  </ul>
+</div>
+
+{% endif %}

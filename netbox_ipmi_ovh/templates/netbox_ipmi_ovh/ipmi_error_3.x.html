@@ -1,0 +1,20 @@
+{% extends 'base/layout.html' %}
+
+
+{% block content %}
+<div class="row my-5">
+    <div class="col-6 offset-3">
+        <div class="card">
+            <h5 class="card-header text-danger">
+	      IPMI OVH Error
+            </h5>
+            <div class="card-body">
+                {{ error_message }}
+            </div>
+            <div class="card-footer text-end">
+                <a href="{% url 'home' %}" class="btn btn-sm btn-primary">Home Page</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
