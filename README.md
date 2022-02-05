@@ -1,7 +1,7 @@
 # Netbox IPMI OVH Plugin
 
 A plugin used to add a button in the dcim.device to allow easier access to the IPMI for OVH managed bare metal servers.
-This will work only on Netbox v2.11.12 (not tested on earlier or later versions)
+Tested on NetBox v2.11.12, v3.0.0 and v3.1.7.
 
 # Installation
 This follow the process of installing a plugin in NetBox [https://netbox.readthedocs.io/en/stable/plugins/]
@@ -86,14 +86,9 @@ You can create custom fields to store required informations for the plugin to wo
 - [x] gestion d'erreur si l'access ipmi demandé n'est pas dispo coté ovh
 - [x] default value si ssh_key / ip pas set
 - [x] gestion d'erreur si OVH renvoie erreur
-- [ ] ~~parsing ip dans ipmi-config~~
-- [ ] hint python
 - [x] better documentation
-- [ ] support derniere version netbox
+- [x] support derniere version netbox
 - [ ] test en python 3.7 (dev en 3.9)
 - [ ] pip package
-- [ ] use pathlib instead of os.path
-- [ ] docstrings
-- [ ] ttl -> either document it or make it avail by user with choice dropdown
-- [ ] test if ovh_server_name retrieived via getattr and return proper error if not
-- [ ] fix status code for all redener template_error 
+- [x] docstrings
+- [x] test if ovh_server_name retrieived via getattr and return proper error if not
