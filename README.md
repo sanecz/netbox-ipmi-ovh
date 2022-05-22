@@ -31,13 +31,13 @@ To enable the plugin, add/update in the **configuration.py** file
 
 ```python
 PLUGINS = [
-    'nextbox_ipmi_ovh',
+    'netbox_ipmi_ovh',
 ]
 ```
 
 ```python
 PLUGINS_CONFIG = {
-    'netbox_ipmi_ovh_plugin': {
+    'netbox_ipmi_ovh': {
         'ovh_server_name_field': 'existing field or custom field',
 	'ovh_endpoint_field': 'existing or custom field',
         'endpoints': {
@@ -76,7 +76,7 @@ A button will be present in dcim.devices to select the type of IPMI access you w
 
 ![](docs/example.png)
 
-You can create custom fields to store required informations for the plugin to work (i.e the server name from OVH and the endpoint used for the api calls) or use existing fields (like asset tag or serial number of even the name), but be careful to fill correctly **ovh_endpoint_field** and **ovh_server_name_field** with the name of the fields you want to use, there is no default value.
+You can create custom fields to store required informations for the plugin to work (i.e the server name from OVH and the endpoint used for the api calls) or use existing fields (like asset tag or serial number or the name), but be careful to fill correctly **ovh_endpoint_field** and **ovh_server_name_field** with the name of the fields you want to use, there is no default value.
 
 ![](docs/example_fields.png)
 
